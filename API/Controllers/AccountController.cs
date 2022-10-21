@@ -3,6 +3,7 @@ using System.Text;
 using API.Data;
 using API.DTOs;
 using API.Entities;
+using API.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,10 +12,12 @@ namespace API.Controllers;
 public class AccountController: BaseApiController
 {
     private readonly DataContext _context;
+    private readonly ITokenService _tokenService;
 
-    public AccountController(DataContext context)
+    public AccountController(DataContext context, ITokenService tokenService)
     {
         _context = context;
+        _tokenService = tokenService;
     }
 
     [HttpPost("register")]
@@ -43,7 +46,7 @@ public class AccountController: BaseApiController
     }
 
     [HttpPost("login")]
-    public async Task<ActionResult<AppUser>> Login(LoginDto login)
+    public async Task<ActionResult<LoginResponseDto>> Login(LoginDto login)
     {
         try
         {
@@ -57,7 +60,11 @@ public class AccountController: BaseApiController
                 return Unauthorized("Invalid Password");
             }
 
-            return foundUser;
+            return new LoginResponseDto
+            {
+                UserName = foundUser.UserName,
+                Token = _tokenService.GenerateToken(foundUser)
+            };
         }
         catch (Exception e)
         {
