@@ -3,28 +3,22 @@ using System.Text;
 using System.Text.Json;
 using API.Data;
 using API.Entities;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace API.Services;
 
 public class SeedService
 {
-    public static async Task SeedUser(DataContext context)
+    public static async Task SeedUser(UserManager<AppUser> userManager)
     {
-        if (await context.Users.AnyAsync()) return;
+        if (await userManager.Users.AnyAsync()) return;
         var jsonData = await File.ReadAllTextAsync("Data/UserSeed.json");
         var users = JsonSerializer.Deserialize<List<AppUser>>(jsonData);
-        foreach (var seedUser in users) 
+        foreach (var seedUser in users)
         {
-            using var hmac = new HMACSHA512();
-            seedUser.PaswordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes("Pa$$w0rd"));
-            seedUser.PaswordSalt = hmac.Key;
-            // seedUser.BirthDate = 
-            Console.WriteLine(seedUser.BirthDate.GetType());
-
-            context.Users.Add(seedUser);
+            seedUser.UserName = seedUser.UserName.ToLower();
+            await userManager.CreateAsync(seedUser, "Pa$$w0rd");
         }
-
-        context.SaveChangesAsync();
     }
 }

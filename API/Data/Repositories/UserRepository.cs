@@ -1,6 +1,9 @@
 ﻿using System.Linq.Expressions;
+using API.DTOs;
 using API.Entities;
 using API.Interfaces;
+using AutoMapper;
+using AutoMapper.QueryableExtensions;
 using Microsoft.EntityFrameworkCore;
 
 namespace API.Data.Repositories;
@@ -8,19 +11,28 @@ namespace API.Data.Repositories;
 public class UserRepository: IUserRepository
 {
     private readonly DataContext _context;
+    private readonly IMapper _mapper;
 
-    public UserRepository(DataContext context)
+    public UserRepository(DataContext context, IMapper mapper)
     {
         _context = context;
+        _mapper = mapper;
     }
     public void Update(AppUser user)
     {
-        throw new NotImplementedException();
+        _context.Entry(user).State = EntityState.Modified;
+    }
+
+    public async Task<bool> SaveAllChanges()
+    {
+        return await _context.SaveChangesAsync() > 0;
     }
 
     public async Task<IEnumerable<AppUser>> ListUsersAsync()
     {
-        return await _context.Users.ToListAsync();
+        return await _context.Users.
+            Include(user => user.Photos)
+            .ToListAsync();
     }
 
     public async Task<AppUser?> FindUserByIdAsync(int id)
@@ -28,8 +40,16 @@ public class UserRepository: IUserRepository
         return await _context.Users.FindAsync(id);
     }
 
-    public async Task<AppUser?> FindUserBy(Expression<Func<AppUser,bool>> where)
+    public async Task<MemberDto?> FindUserBy(Expression<Func<AppUser,bool>> where)
     {
-        return await _context.Users.SingleOrDefaultAsync(where);
+        return await _context.Users.Where(where)
+            .ProjectTo<MemberDto>(_mapper.ConfigurationProvider)
+            .SingleOrDefaultAsync();
+    }
+
+    public async Task<IEnumerable<MemberDto>> GetMembersAsync()
+    {
+        return await _context.Users.ProjectTo<MemberDto>(_mapper.ConfigurationProvider).ToListAsync();
+
     }
 }
