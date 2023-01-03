@@ -37,7 +37,9 @@ public class UserRepository: IUserRepository
 
     public async Task<AppUser?> FindUserByIdAsync(int id)
     {
-        return await _context.Users.FindAsync(id);
+        return await _context.Users.
+            Include(user => user.Photos)
+            .SingleOrDefaultAsync(user => user.Id == id);
     }
 
     public async Task<MemberDto?> FindUserBy(Expression<Func<AppUser,bool>> where)

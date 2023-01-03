@@ -42,6 +42,7 @@ public class AccountController: BaseApiController
 
         return new UserAccountResponseDto
         {
+            Id = user.Id,
             Username = user.UserName,
             Token = _tokenService.GenerateToken(user),
             KnownAs = user.KnownAs,
@@ -56,14 +57,15 @@ public class AccountController: BaseApiController
             .Include(p => p.Photos)
             .SingleOrDefaultAsync(x => x.UserName == loginDto.UserName);
 
-        if (user == null) return Unauthorized("invalid username");
+        if (user == null) return Unauthorized(new {error = "invalid username"});
 
         var result = await _userManager.CheckPasswordAsync(user, loginDto.Password);
 
-        if (!result) return Unauthorized("Invalid password");
+        if (!result) return Unauthorized(new {error = "Invalid password"});
 
         return new UserAccountResponseDto
         {
+            Id = user.Id,
             Username = user.UserName,
             Token = _tokenService.GenerateToken(user),
             PhotoUrl = user.Photos.FirstOrDefault(x => x.IsMain)?.Url ?? "",
