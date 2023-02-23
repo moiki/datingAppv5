@@ -42,10 +42,10 @@ public class UserRepository: IUserRepository
             .SingleOrDefaultAsync(user => user.Id == id);
     }
 
-    public async Task<MemberDto?> FindUserBy(Expression<Func<AppUser,bool>> where)
+    public async Task<AppUser?> FindUserBy(Expression<Func<AppUser,bool>> where)
     {
         return await _context.Users.Where(where)
-            .ProjectTo<MemberDto>(_mapper.ConfigurationProvider)
+            // .ProjectTo<MemberDto>(_mapper.ConfigurationProvider)
             .SingleOrDefaultAsync();
     }
 

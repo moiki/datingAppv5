@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System.Security.Claims;
+using System.Text.Json;
 using API.Data;
 using API.DTOs;
 using API.Entities;
@@ -40,5 +41,27 @@ public class UsersController: BaseApiController
         var result = _mapper.Map<MemberDto>(user);
         return Ok(result);
 
+    }
+
+    [HttpPut]
+    public async Task<ActionResult> UpdateUser(MemberUpdateDto member)
+    {
+        var username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var user = await _user.FindUserBy(x => x.UserName == username);
+        if (user is null) return NotFound();
+        var allEquals = true;
+        foreach (var property in member.GetType().GetProperties())
+        {
+            var  mbProp = property.GetValue(member).ToString();
+            var usProp = user.GetType().GetProperties().FirstOrDefault(x => x.Name == property.Name);
+            if ( mbProp != usProp.GetValue(user).ToString()) allEquals = false;
+        }
+
+        if (allEquals) return BadRequest("No changes found");
+        
+        _mapper.Map(member, user);
+        
+        if (await _user.SaveAllChanges()) return NoContent();
+        return BadRequest("Update action failed!");
     }
 }

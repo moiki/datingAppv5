@@ -15,9 +15,10 @@ public class AutoMapperProfile : Profile
             .ForMember(destination => destination.PhotoUrl,
                 options => options.MapFrom(src => src.Photos.FirstOrDefault(x => x.IsMain).Url));
         CreateMap<Photo, PhotoDto>();
-            
+
         CreateMap<RegisterDto, AppUser>()
             .ForMember(dest => dest.BirthDate,
                 option => option.MapFrom(src => src.DateOfBirth));
+        CreateMap<MemberUpdateDto, AppUser>();
     }
 }

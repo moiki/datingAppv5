@@ -10,6 +10,6 @@ public interface IUserRepository
     Task<bool> SaveAllChanges();
     Task<IEnumerable<AppUser>> ListUsersAsync();
     Task<AppUser?> FindUserByIdAsync(int id);
-    Task<MemberDto?> FindUserBy(Expression<Func<AppUser,bool>> where);
+    Task<AppUser?> FindUserBy(Expression<Func<AppUser,bool>> where);
     Task<IEnumerable<MemberDto>> GetMembersAsync();
 }
